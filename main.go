@@ -5,8 +5,8 @@ import (
 	"log"
 	"runtime/debug"
 
-	"github.com/digineo/unifi-sdn-exporter/exporter"
-	"github.com/digineo/unifi-sdn-exporter/unifi"
+	"git.digineo.de/digineo/unifi-sdn-exporter/exporter"
+	"git.digineo.de/digineo/unifi-sdn-exporter/unifi"
 
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )

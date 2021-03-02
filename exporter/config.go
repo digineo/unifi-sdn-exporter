@@ -3,8 +3,8 @@ package exporter
 import (
 	"fmt"
 
+	"git.digineo.de/digineo/unifi-sdn-exporter/unifi"
 	"github.com/BurntSushi/toml"
-	"github.com/digineo/unifi-sdn-exporter/unifi"
 )
 
 type Config struct {
