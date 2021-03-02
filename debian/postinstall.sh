@@ -1,5 +1,5 @@
 #!/bin/sh
 
 systemctl daemon-reload
-systemctl enable triax-eoc-exporter
-systemctl restart triax-eoc-exporter
+systemctl enable unifi-sdn-exporter
+systemctl restart unifi-sdn-exporter

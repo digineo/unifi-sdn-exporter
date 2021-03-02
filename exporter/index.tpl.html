@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Unifi SDN Exporter (Version %s)</title>
+</head>
+<body>
+	<h1>Unifi SDN Exporter</h1>
+
+	<h2>Metrics</h2>
+	{{- range $alias, $sites := . }}
+	<h3>{{ $alias }}</h3>
+	<ol>
+		{{- range $sites }}
+			<li><a href="/metrics?target={{ $alias }}&amp;site={{ .Desc }}">{{ .Desc }}</a></li>
+		{{- else }}
+			<li><em>no sites</em></li>
+		{{- end }}
+	</ol>
+	{{- end }}
+</body>
+</html>

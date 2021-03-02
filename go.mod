@@ -1,6 +1,6 @@
-module github.com/digineo/triax-eoc-exporter
+module github.com/digineo/unifi-sdn-exporter
 
-go 1.15
+go 1.16
 
 require (
 	github.com/BurntSushi/toml v0.3.1

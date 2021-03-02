@@ -3,7 +3,7 @@ nfpms:
   -
     # Name of the package.
     # Defaults to `ProjectName`.
-    package_name: triax-eoc-exporter
+    package_name: unifi-sdn-exporter
 
     # You can change the file name of the package.
     # Default: `{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}{{ if .Mips }}_{{ .Mips }}{{ end }}`
@@ -23,7 +23,7 @@ nfpms:
 
     # Your app's description.
     # Default is empty.
-    description: Prometheus Exporter for Triax EoC Controllers
+    description: Prometheus Exporter for Unifi SDN Controllers
 
     # Your app's license.
     # Default is empty.
@@ -45,17 +45,17 @@ nfpms:
     # Contents to add to the package.
     # GoReleaser will automatically add the binaries.
     contents:
-      - src: debian/triax-eoc-exporter.service
-        dst: /lib/systemd/system/triax-eoc-exporter.service
+      - src: debian/unifi-sdn-exporter.service
+        dst: /lib/systemd/system/unifi-sdn-exporter.service
 
       - src: debian/default
-        dst: /etc/default/triax-eoc-exporter
+        dst: /etc/default/unifi-sdn-exporter
         type: config
 
       # Sometimes it is important to be able to set the mtime, mode, owner, or group for a file
       # that differs from what is on the local build system at build time.
       - src: exporter/config.example.toml
-        dst: /etc/triax-eoc-exporter/config.toml
+        dst: /etc/unifi-sdn-exporter/config.toml
         type: config
         file_info:
           mode: 0600

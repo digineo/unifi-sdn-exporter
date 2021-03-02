@@ -2,7 +2,7 @@
 
 case "$1" in
     remove)
-        systemctl disable triax-eoc-exporter || true
-        systemctl stop triax-eoc-exporter || true
+        systemctl disable unifi-sdn-exporter || true
+        systemctl stop unifi-sdn-exporter || true
     ;;
 esac

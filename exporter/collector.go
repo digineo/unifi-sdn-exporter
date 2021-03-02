@@ -2,134 +2,84 @@ package exporter
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"strconv"
 
-	"github.com/digineo/triax-eoc-exporter/triax"
+	"github.com/digineo/unifi-sdn-exporter/unifi"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-type triaxCollector struct {
-	client *triax.Client
+type unifiCollector struct {
+	client unifi.Client
 	ctx    context.Context
+	site   string
 }
 
-var _ prometheus.Collector = (*triaxCollector)(nil)
+var _ prometheus.Collector = (*unifiCollector)(nil)
 
 var (
-	ctrlUp               = ctrlDesc("up", "indicator whether controller is reachable")
-	ctrlUptime           = ctrlDesc("uptime", "uptime of controller in seconds")
-	ctrlLoad             = ctrlDesc("load", "current system load of controller")
-	ctrlMemoryTotal      = ctrlDesc("mem_total", "total system memory of controller in bytes")
-	ctrlMemoryFree       = ctrlDesc("mem_free", "free system memory of controller in bytes")
-	ctrlMemoryBuffered   = ctrlDesc("mem_buffered", "buffered system memory of controller in bytes")
-	ctrlMemoryShared     = ctrlDesc("mem_shared", "shared system memory of controller in bytes")
-	ctrlGhnNumOnline     = ctrlDesc("ghn_endpoints_online", "number of endponts online for a G.HN port", "port")
-	ctrlGhnNumRegistered = ctrlDesc("ghn_endpoints_registered", "number of endponts registered for a G.HN port", "port")
+	ctrlUp = ctrlDesc("up", "indicator whether controller is reachable", "version")
 
-	nodeLabel   = []string{"name"}
-	nodeStatus  = nodeDesc("status", "current endpoint status")
-	nodeUptime  = nodeDesc("uptime", "uptime of endpoint in seconds")
-	nodeOffline = nodeDesc("offline_since", "offline since unix timestamp")
-	nodeLoad    = nodeDesc("load", "current system load of endpoint")
-	nodeGhnPort = nodeDesc("ghn_port", "G.HN port number", "ghn_mac")
-	nodeClients = nodeDesc("clients", "number of connected WLAN clients", "band")
+	siteWifiUtil         = siteDesc("wifi_utilization", "average Wifi utilization", "band")
+	siteWifiClientsScore = siteDesc("wifi_client_score", "average client score") // 0-100?
+	siteWifiClientsPoor  = siteDesc("wifi_clients_poor_count", "number of clients with poor score")
+	siteWifiClientsFair  = siteDesc("wifi_clients_fair_count", "number of clients with fair score")
+	siteWifiClientsGood  = siteDesc("wifi_clients_good_count", "number of clients with good score")
 
-	counterLabel   = []string{"interface", "direction"}
-	counterBytes   = nodeDesc("interface_bytes", "total bytes transmitted or received", counterLabel...)
-	counterPackets = nodeDesc("interface_packets", "total packets transmitted or received", counterLabel...)
-	counterErrors  = nodeDesc("interface_errors", "total number of errors", counterLabel...)
-
-	ghnRxbps = nodeDesc("ghn_rxbps", "negotiated RX rate in bps")
-	ghnTxbps = nodeDesc("ghn_txbps", "negotiated TX rate in bps")
+	devLabel   = []string{"mac"}
+	devStatus  = deviceDesc("status", "current device status", "desc", "model_id", "model", "firmware")
+	devUptime  = deviceDesc("uptime", "uptime of device in seconds")
+	devLoad    = deviceDesc("load", "current system load of endpoint")
+	devClients = deviceDesc("clients", "number of connected WLAN clients", "band")
 )
 
-func (t *triaxCollector) Describe(ch chan<- *prometheus.Desc) {
+func (uc *unifiCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- ctrlUp
-	ch <- ctrlUptime
-	ch <- ctrlLoad
-	ch <- ctrlMemoryTotal
-	ch <- ctrlMemoryFree
-	ch <- ctrlMemoryBuffered
-	ch <- ctrlMemoryShared
-	ch <- ctrlGhnNumOnline
-	ch <- ctrlGhnNumRegistered
 
-	ch <- nodeStatus
-	ch <- nodeUptime
-	ch <- nodeLoad
-	ch <- nodeGhnPort
-	ch <- nodeClients
+	ch <- siteWifiUtil
+	ch <- siteWifiClientsScore
+	ch <- siteWifiClientsPoor
+	ch <- siteWifiClientsFair
+	ch <- siteWifiClientsGood
+
+	ch <- devStatus
+	ch <- devUptime
+	ch <- devLoad
+	ch <- devClients
 }
 
-func (t *triaxCollector) Collect(ch chan<- prometheus.Metric) {
+func (uc *unifiCollector) Collect(ch chan<- prometheus.Metric) {
 	const C, G = prometheus.CounterValue, prometheus.GaugeValue
 
 	metric := func(desc *prometheus.Desc, typ prometheus.ValueType, v float64, label ...string) {
 		ch <- prometheus.MustNewConstMetric(desc, typ, v, label...)
 	}
 
-	counterMetric := func(counters *triax.Counters, node, ifname string) {
-		metric(counterBytes, C, float64(counters.RxByte), node, ifname, "rx")
-		metric(counterBytes, C, float64(counters.TxByte), node, ifname, "tx")
-		metric(counterPackets, C, float64(counters.RxPacket), node, ifname, "rx")
-		metric(counterPackets, C, float64(counters.TxPacket), node, ifname, "tx")
-		metric(counterErrors, C, float64(counters.RxErr), node, ifname, "rx")
-		metric(counterErrors, C, float64(counters.TxErr), node, ifname, "tx")
-	}
-
-	m, err := t.client.Metrics(t.ctx)
-	metric(ctrlUp, G, boolToFloat(err == nil))
+	m, err := uc.client.Metrics(uc.ctx, uc.site)
+	metric(ctrlUp, G, boolToFloat(err == nil), m.ControllerVersion)
 	if err != nil {
 		log.Println("fetching failed:", err)
 		return
 	}
 
-	metric(ctrlUptime, C, float64(m.Uptime))
-	metric(ctrlLoad, G, m.Load)
+	metric(siteWifiUtil, G, m.AvgWifiUtilization24, "2.4")
+	metric(siteWifiUtil, G, m.AvgWifiUtilization50, "5")
+	metric(siteWifiClientsScore, G, m.AvgWifiScore)
+	metric(siteWifiClientsPoor, G, float64(m.ClientsPoorScore))
+	metric(siteWifiClientsFair, G, float64(m.ClientsFairScore))
+	metric(siteWifiClientsGood, G, float64(m.ClientsGoodScore))
 
-	metric(ctrlMemoryTotal, G, float64(m.Memory.Total))
-	metric(ctrlMemoryFree, G, float64(m.Memory.Free))
-	metric(ctrlMemoryBuffered, G, float64(m.Memory.Buffered))
-	metric(ctrlMemoryShared, G, float64(m.Memory.Shared))
+	for _, d := range m.Devices {
+		metric(devStatus, G, float64(d.Status), d.MAC, d.StatusHuman, d.Model, d.ModelHuman, d.Firmware)
 
-	if ports := m.GhnPorts; ports != nil {
-		for _, port := range ports {
-			number := strconv.Itoa(port.Number)
-			metric(ctrlGhnNumRegistered, G, float64(port.EndpointsRegistered), number)
-			metric(ctrlGhnNumOnline, G, float64(port.EndpointsOnline), number)
+		if d.Uptime == 0 {
+			metric(devUptime, G, 0, d.MAC)
+			continue
 		}
-	}
+		metric(devUptime, G, d.Uptime.Seconds(), d.MAC)
+		metric(devLoad, G, d.Load, d.MAC)
 
-	if nodes := m.Endpoints; nodes != nil {
-		for _, node := range nodes {
-			metric(nodeStatus, G, float64(node.Status), node.Name)
-
-			if node.Uptime > 0 {
-				metric(nodeUptime, C, float64(node.Uptime), node.Name)
-			} else {
-				metric(nodeOffline, C, float64(node.OfflineSince.Unix()), node.Name)
-			}
-
-			// ethernet statistics
-			for _, stats := range node.Statistics.Ethernet {
-				if stats.Link {
-					counterMetric(&stats.Counters, node.Name, fmt.Sprintf("eth%d", stats.Port))
-				}
-			}
-
-			// wireless statistics
-			for _, stats := range node.Statistics.Wireless {
-				metric(nodeClients, G, float64(stats.Clients), node.Name, strconv.Itoa(stats.Band))
-				counterMetric(&stats.Counters, node.Name, fmt.Sprintf("wifi%d", stats.Band))
-			}
-
-			// ghn statistics
-			if stats := node.GhnStats; stats != nil {
-				metric(ghnRxbps, G, float64(stats.Rxbps), node.Name)
-				metric(ghnTxbps, G, float64(stats.Txbps), node.Name)
-			}
+		for band, clients := range d.Radios {
+			metric(devClients, G, float64(clients), d.MAC, band)
 		}
 	}
 }
@@ -143,11 +93,16 @@ func boolToFloat(val bool) float64 {
 }
 
 func ctrlDesc(name, help string, extraLabel ...string) *prometheus.Desc {
-	fqdn := prometheus.BuildFQName("triax", "eoc_controller", name)
+	fqdn := prometheus.BuildFQName("unifi_sdn", "controller", name)
 	return prometheus.NewDesc(fqdn, help, extraLabel, nil)
 }
 
-func nodeDesc(name, help string, extraLabel ...string) *prometheus.Desc {
-	fqdn := prometheus.BuildFQName("triax", "eoc_endpoint", name)
-	return prometheus.NewDesc(fqdn, help, append(nodeLabel, extraLabel...), nil)
+func siteDesc(name, help string, extraLabel ...string) *prometheus.Desc {
+	fqdn := prometheus.BuildFQName("unifi_sdn", "site", name)
+	return prometheus.NewDesc(fqdn, help, extraLabel, nil)
+}
+
+func deviceDesc(name, help string, extraLabel ...string) *prometheus.Desc {
+	fqdn := prometheus.BuildFQName("unifi_sdn", "device", name)
+	return prometheus.NewDesc(fqdn, help, append(devLabel, extraLabel...), nil)
 }

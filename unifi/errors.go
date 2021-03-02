@@ -1,4 +1,4 @@
-package triax
+package unifi
 
 import (
 	"errors"
@@ -15,6 +15,12 @@ func (err *ErrInvalidEndpoint) Error() string {
 
 func (err *ErrInvalidEndpoint) Unwrap() error {
 	return err.err
+}
+
+type ErrRequestFailed string
+
+func (err ErrRequestFailed) Error() string {
+	return fmt.Sprintf("request failed: %s", string(err))
 }
 
 var ErrMissingCredentials = errors.New("missing username/password")

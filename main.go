@@ -5,8 +5,8 @@ import (
 	"log"
 	"runtime/debug"
 
-	"github.com/digineo/triax-eoc-exporter/exporter"
-	"github.com/digineo/triax-eoc-exporter/triax"
+	"github.com/digineo/unifi-sdn-exporter/exporter"
+	"github.com/digineo/unifi-sdn-exporter/unifi"
 
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
@@ -27,7 +27,7 @@ func main() {
 	listenAddress := kingpin.Flag(
 		"web.listen-address",
 		"Address on which to expose metrics and web interface.",
-	).Default(":9809").String()
+	).Default(":9810").String()
 
 	configFile := kingpin.Flag(
 		"web.config",
@@ -42,12 +42,13 @@ func main() {
 	kingpin.HelpFlag.Short('h')
 	kingpin.Parse()
 
+	log.SetFlags(log.Lshortfile)
 	cfg, err := exporter.LoadConfig(*configFile)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
-	triax.Verbose = *verbose
+	unifi.Verbose = *verbose
 	cfg.Start(*listenAddress)
 }
 

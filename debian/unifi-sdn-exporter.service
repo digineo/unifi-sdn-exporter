@@ -1,0 +1,14 @@
+[Unit]
+Description=Unifi SDN Exporter
+Documentation=https://github.com/digineo/unifi-sdn-exporter
+
+[Service]
+EnvironmentFile=/etc/default/unifi-sdn-exporter
+ExecStart=/usr/bin/unifi-sdn-exporter --web.config=/etc/unifi-sdn-exporter/config.toml $ARGS
+User=prometheus
+ProtectSystem=strict
+ProtectHome=yes
+ReadOnlyPaths=/etc/unifi-sdn-exporter
+
+[Install]
+WantedBy=multi-user.target

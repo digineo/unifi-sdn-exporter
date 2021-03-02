@@ -1,5 +1,12 @@
-[[eoc-controller]]
+[[unifi-controller]]
+alias    = "local"
+url      = "https://192.168.1.2:8443"
+insecure = true
+username = "admin"
+password = "password"
 
-alias    = "eoc"
-host     = "192.168.1.2"
-password = "admin"
+[[unifi-controller]]
+alias    = "remote"
+url      = "https://unifi.example.com"
+username = "admin"
+password = "topsecret"
