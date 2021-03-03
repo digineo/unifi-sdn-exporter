@@ -21,9 +21,7 @@ var (
 
 	siteWifiUtil         = siteDesc("wifi_utilization", "average Wifi utilization", "band")
 	siteWifiClientsScore = siteDesc("wifi_client_score", "average client score") // 0-100?
-	siteWifiClientsPoor  = siteDesc("wifi_clients_poor_count", "number of clients with poor score")
-	siteWifiClientsFair  = siteDesc("wifi_clients_fair_count", "number of clients with fair score")
-	siteWifiClientsGood  = siteDesc("wifi_clients_good_count", "number of clients with good score")
+	siteWifiClientsCount = siteDesc("wifi_clients_count", "number of clients by rating", "rating")
 
 	devLabel   = []string{"mac"}
 	devStatus  = deviceDesc("status", "current device status", "desc", "model_id", "model", "firmware")
@@ -38,9 +36,7 @@ func (uc *unifiCollector) Describe(ch chan<- *prometheus.Desc) {
 
 	ch <- siteWifiUtil
 	ch <- siteWifiClientsScore
-	ch <- siteWifiClientsPoor
-	ch <- siteWifiClientsFair
-	ch <- siteWifiClientsGood
+	ch <- siteWifiClientsCount
 
 	ch <- devStatus
 	ch <- devUptime
@@ -66,9 +62,9 @@ func (uc *unifiCollector) Collect(ch chan<- prometheus.Metric) {
 	metric(siteWifiUtil, G, m.AvgWifiUtilization24, "2.4")
 	metric(siteWifiUtil, G, m.AvgWifiUtilization50, "5")
 	metric(siteWifiClientsScore, G, m.AvgWifiScore)
-	metric(siteWifiClientsPoor, G, float64(m.ClientsPoorScore))
-	metric(siteWifiClientsFair, G, float64(m.ClientsFairScore))
-	metric(siteWifiClientsGood, G, float64(m.ClientsGoodScore))
+	metric(siteWifiClientsCount, G, float64(m.ClientsPoorScore), "poor")
+	metric(siteWifiClientsCount, G, float64(m.ClientsFairScore), "fair")
+	metric(siteWifiClientsCount, G, float64(m.ClientsGoodScore), "good")
 
 	for _, d := range m.Devices {
 		metric(devStatus, G, float64(d.Status), d.MAC, d.StatusHuman, d.Model, d.ModelHuman, d.Firmware)
