@@ -10,26 +10,27 @@ import (
 type Config struct {
 	// list of Unifi SDN controllers
 	Controllers []*unifi.Controller `toml:"unifi-controller"`
+
+	// Transformed controller instances. Key it the clients target identifier,
+	// i.e. the controller alias or the URL's host name.
+	clients map[string]unifi.Client
 }
 
 // LoadConfig loads the configuration from a file.
 func LoadConfig(file string) (*Config, error) {
 	cfg := Config{}
-
 	if _, err := toml.DecodeFile(file, &cfg); err != nil {
 		return nil, fmt.Errorf("loading config file %q failed: %w", file, err)
 	}
 
-	return &cfg, nil
-}
-
-// getClient builds a client.
-func (cfg *Config) getClient(target string) (unifi.Client, error) {
-	for _, ctrl := range cfg.Controllers {
-		if target == ctrl.Alias || target == ctrl.URL {
-			return unifi.NewClient(ctrl)
+	cfg.clients = make(map[string]unifi.Client)
+	for i, ctrl := range cfg.Controllers {
+		client, err := unifi.NewClient(ctrl)
+		if err != nil {
+			return nil, fmt.Errorf("invalid controller #%d (%v): %w", i, ctrl, err)
 		}
+		cfg.clients[client.TargetName()] = client
 	}
 
-	return nil, nil
+	return &cfg, nil
 }

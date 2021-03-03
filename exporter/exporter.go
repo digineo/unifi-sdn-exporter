@@ -67,12 +67,7 @@ func (cfg *Config) targetMiddleware(next targetHandler) http.Handler {
 			return
 		}
 
-		client, err := cfg.getClient(target)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadGateway)
-			return
-		}
-
+		client := cfg.clients[target]
 		if client == nil {
 			http.Error(w, "configuration not found", http.StatusNotFound)
 			return

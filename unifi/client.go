@@ -36,6 +36,7 @@ type Controller struct {
 }
 
 type Client interface {
+	TargetName() string
 	Metrics(ctx context.Context, siteDesc string) (*Metrics, error)
 	Get(ctx context.Context, path string, res interface{}) error
 	Sites(ctx context.Context) ([]Site, error)
@@ -64,36 +65,42 @@ const (
 )
 
 // NewClient creates a new Client instance.
-func NewClient(ctrl *Controller) (Client, error) {
-	if ctrl.init {
-		return ctrl, nil
+func NewClient(c *Controller) (Client, error) {
+	if c.init {
+		return c, nil
 	}
 
-	if ctrl.Username == "" || ctrl.Password == "" {
+	if c.Username == "" || c.Password == "" {
 		return nil, ErrMissingCredentials
 	}
 
-	endpoint, err := url.Parse(ctrl.URL)
+	endpoint, err := url.Parse(c.URL)
 	if err != nil {
 		return nil, &ErrInvalidEndpoint{err}
 	}
+	c.endpoint = endpoint
 
-	ctrl.endpoint = endpoint
-	ctrl.client = &http.Client{
-		Timeout: 10 * time.Second,
-	}
-	ctrl.client.Jar, _ = cookiejar.New(nil) // error is always nil
+	c.client = &http.Client{Timeout: 10 * time.Second}
+	c.client.Jar, _ = cookiejar.New(nil) // error is always nil
 
-	if endpoint.Scheme == "https" {
-		ctrl.client.Transport = &http.Transport{
+	if c.endpoint.Scheme == "https" {
+		c.client.Transport = &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: ctrl.Insecure,
+				InsecureSkipVerify: c.Insecure,
 			},
 		}
 	}
-	ctrl.init = true
+	c.init = true
 
-	return ctrl, nil
+	return c, nil
+}
+
+func (c *Controller) TargetName() string {
+	if c.Alias != "" {
+		return c.Alias
+	}
+
+	return c.endpoint.Host
 }
 
 func (c *Controller) login(ctx context.Context) error {
