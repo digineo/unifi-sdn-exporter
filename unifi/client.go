@@ -167,7 +167,7 @@ func (c *Controller) apiRequest(ctx context.Context, method, path string, reques
 
 	jsonData, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return err
+		return fmt.Errorf("reading response failed: %w", err)
 	}
 
 	// parse response

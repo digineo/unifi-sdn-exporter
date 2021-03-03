@@ -17,10 +17,8 @@ var DefaultConfigPath = "./config.toml"
 
 // nolint: gochecknoglobals
 var (
-	version = "dev"
-	commit  = ""
-	date    = ""
-	builtBy = ""
+	version = "development"
+	commit  = "HEAD"
 )
 
 func main() {
@@ -38,6 +36,14 @@ func main() {
 		"verbose",
 		"Increase verbosity",
 	).Bool()
+
+	kingpin.Version(fmt.Sprintf("version %s (%s)", version, commit)).
+		PreAction(func(*kingpin.ParseContext) error {
+			fmt.Println("Dependencies\n------------")
+			printVersion()
+			fmt.Println("\nUnifi SDN Exporter\n------------------")
+			return nil
+		}).VersionFlag.Short('v')
 
 	kingpin.HelpFlag.Short('h')
 	kingpin.Parse()
@@ -59,7 +65,6 @@ func printVersion() {
 	}
 
 	const l = "%-10s %-50s %s\n"
-	fmt.Println("Dependencies\n------------")
 	fmt.Printf(l, "main", info.Main.Path, version)
 	for _, i := range info.Deps {
 		if r := i.Replace; r != nil {
