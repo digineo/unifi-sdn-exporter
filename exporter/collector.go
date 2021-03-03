@@ -79,7 +79,7 @@ func (uc *unifiCollector) Collect(ch chan<- prometheus.Metric) {
 		}
 		metric(devUptime, G, d.Uptime.Seconds(), d.MAC)
 		metric(devLoad, G, d.Load, d.MAC)
-		metric(devUplink, G, float64(d.UplinkSpeed), d.Uplink)
+		metric(devUplink, G, float64(d.UplinkSpeed), d.MAC, d.Uplink)
 
 		for band, clients := range d.Radios {
 			metric(devClients, G, float64(clients), d.MAC, band)
