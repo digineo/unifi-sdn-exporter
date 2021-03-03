@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"runtime/debug"
 
 	"git.digineo.de/digineo/unifi-sdn-exporter/exporter"
@@ -37,13 +38,14 @@ func main() {
 		"Increase verbosity",
 	).Bool()
 
-	kingpin.Version(fmt.Sprintf("version %s (%s)", version, commit)).
+	kingpin.Flag("version", "Show version information").
+		Short('v').
 		PreAction(func(*kingpin.ParseContext) error {
-			fmt.Println("Dependencies\n------------")
 			printVersion()
-			fmt.Println("\nUnifi SDN Exporter\n------------------")
+			os.Exit(0)
 			return nil
-		}).VersionFlag.Short('v')
+		}).
+		Bool()
 
 	kingpin.HelpFlag.Short('h')
 	kingpin.Parse()
@@ -65,7 +67,10 @@ func printVersion() {
 	}
 
 	const l = "%-10s %-50s %s\n"
-	fmt.Printf(l, "main", info.Main.Path, version)
+	v := fmt.Sprintf("%s (commit %s)\n", version, commit)
+	fmt.Printf(l, "main", info.Main.Path, v)
+
+	fmt.Println("Dependencies:")
 	for _, i := range info.Deps {
 		if r := i.Replace; r != nil {
 			fmt.Printf(l, "dep", r.Path, r.Version)
