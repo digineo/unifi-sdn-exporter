@@ -117,11 +117,14 @@ func (c *Controller) login(ctx context.Context) error {
 }
 
 // apiRequest sends an API request to the controller. The path is constructed
-// from c.base + "/api/" + path. The request parameter, if not nil, will be
-// JSON encoded, and the JSON response is decoded into the response parameter.
+// from c.endpoint + path. The request parameter, if not nil, will be JSON
+// encoded, and the JSON response is decoded into the response parameter.
 //
 //	req, res := requestType{...}, responseType{...}
 //	err := c.apiRequest(ctx, "POST", "node/status", &req, &res)
+//
+// If the response parameter is of type *metaResponse, it will be returned
+// still wrapped. Otherwise an implicit metaResponse is unwrapped.
 func (c *Controller) apiRequest(ctx context.Context, method, path string, request, response interface{}) error {
 	url := fmt.Sprintf("%s://%s/%s", c.endpoint.Scheme, c.endpoint.Host, strings.TrimPrefix(path, "/"))
 	vlogf("%s %s", method, url)

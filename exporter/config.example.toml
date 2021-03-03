@@ -1,12 +1,42 @@
-[[unifi-controller]]
-alias    = "local"
-url      = "https://192.168.1.2:8443"
-insecure = true
-username = "admin"
-password = "password"
-
-[[unifi-controller]]
-alias    = "remote"
-url      = "https://unifi.example.com"
-username = "admin"
-password = "topsecret"
+# This is a TOML configuration file. See https://toml.io/en/latest
+# for the language specification.
+#
+# The Unifi SDN exporter is capable of querying multiple controller
+# installation. Each controller installation is marked in a
+# block called `[[unifi-controller]]`.
+#
+# Each installation requires at least three setting:
+# - `url` should point to the base URL of the installtion, e.g.
+#    https://unifi.example.com
+# - `username` and "password" are used to log into the controller.
+#   The user should have the following permission:
+#   - role "read only"
+#   - uncheck "allow device adoption"
+#   - (optional) check "show pending devices"
+#   - uncheck allow editing dashboards
+#   - check "allow system stats access"
+#   - check "allow read only access to all sites"
+#
+# An optional `alias` can be configured to use as `target` parameter
+# (instead of the host name found in the `url`).
+#
+# Finally, you may specify with `insecure=true`, whether you trust
+# the default installation's self-signed TLS certificate:
+#
+#     # http://localhost:9810/metrics?target=local&site=xyz
+#     [[unifi-controller]]
+#     alias    = "local"
+#     url      = "https://192.168.1.2:8443"
+#     insecure = true
+#     username = "admin"
+#     password = "password"
+#
+# A more production-ready setup will likey have a TLS-terminating
+# proxy in front of the actual controller. In this case, you won't
+# need `insecure=true`:
+#
+#     # http://localhost:9810/metrics?target=unifi.example.com&site=xyz
+#     [[unifi-controller]]
+#     url      = "https://unifi.example.com"
+#     username = "admin"
+#     password = "topsecret"
