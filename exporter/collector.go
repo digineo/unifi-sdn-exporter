@@ -30,6 +30,7 @@ var (
 	devUptime  = deviceDesc("uptime", "uptime of device in seconds")
 	devLoad    = deviceDesc("load", "current system load of endpoint")
 	devClients = deviceDesc("clients", "number of connected WLAN clients", "band")
+	devUplink  = deviceDesc("uplink", "uplink type and speed", "type")
 )
 
 func (uc *unifiCollector) Describe(ch chan<- *prometheus.Desc) {
@@ -45,6 +46,7 @@ func (uc *unifiCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- devUptime
 	ch <- devLoad
 	ch <- devClients
+	ch <- devUplink
 }
 
 func (uc *unifiCollector) Collect(ch chan<- prometheus.Metric) {
@@ -77,6 +79,7 @@ func (uc *unifiCollector) Collect(ch chan<- prometheus.Metric) {
 		}
 		metric(devUptime, G, d.Uptime.Seconds(), d.MAC)
 		metric(devLoad, G, d.Load, d.MAC)
+		metric(devUplink, G, float64(d.UplinkSpeed), d.Uplink)
 
 		for band, clients := range d.Radios {
 			metric(devClients, G, float64(clients), d.MAC, band)
