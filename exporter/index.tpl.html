@@ -2,17 +2,17 @@
 <html>
 <head>
 	<meta charset="UTF-8">
-	<title>Unifi SDN Exporter (Version %s)</title>
+	<title>Unifi SDN Exporter v{{ .Version }}</title>
 </head>
 <body>
-	<h1>Unifi SDN Exporter</h1>
+	<h1>Unifi SDN Exporter &bull; Version {{ .Version }}</h1>
 
 	<h2>Metrics</h2>
-	{{- range $alias, $sites := . }}
-	<h3>{{ $alias }}</h3>
+	{{- range $target, $sites := .Sites }}
+	<h3>Target: <code>{{ $target }}</code></h3>
 	<ol>
 		{{- range $sites }}
-			<li><a href="/metrics?target={{ $alias }}&amp;site={{ .Desc }}">{{ .Desc }}</a></li>
+			<li><a href="/metrics?target={{ $target }}&amp;site={{ .Desc }}">{{ .Desc }}</a></li>
 		{{- else }}
 			<li><em>no sites</em></li>
 		{{- end }}

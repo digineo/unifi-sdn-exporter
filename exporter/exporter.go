@@ -14,7 +14,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func (cfg *Config) Start(listenAddress string) {
+func (cfg *Config) Start(listenAddress, version string) {
 	http.Handle("/metrics", cfg.targetMiddleware(cfg.metricsHandler))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.RequestURI != "/" {
@@ -22,29 +22,28 @@ func (cfg *Config) Start(listenAddress string) {
 			return
 		}
 
-		vars := make(map[string][]unifi.Site)
+		vars := struct {
+			Version string
+			Sites   map[string][]unifi.Site
+		}{
+			Version: version,
+			Sites:   make(map[string][]unifi.Site),
+		}
 
-		for _, ctrl := range cfg.Controllers {
-			client, err := unifi.NewClient(ctrl)
-			if err != nil {
-				http.Error(w, fmt.Sprintf("error creating client for controller %s: %v", ctrl.Alias, err), http.StatusInternalServerError)
-				return
-			}
-
+		for target, client := range cfg.clients {
 			s, err := client.Sites(r.Context())
 			if err != nil {
-				http.Error(w, fmt.Sprintf("error fetching sites for controller %s: %v", ctrl.Alias, err), http.StatusInternalServerError)
+				http.Error(w, fmt.Sprintf("error fetching sites for controller %s: %v", target, err), http.StatusInternalServerError)
 				return
 			}
 
 			sort.Slice(s, func(i, j int) bool {
 				return strings.Compare(s[i].Desc, s[j].Desc) < 0
 			})
-
-			vars[ctrl.Alias] = s
+			vars.Sites[target] = s
 		}
 
-		tmpl.Execute(w, vars)
+		tmpl.Execute(w, &vars)
 	})
 
 	log.Printf("Starting exporter on http://%s/", listenAddress)

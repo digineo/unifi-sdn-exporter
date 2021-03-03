@@ -57,7 +57,7 @@ func main() {
 	}
 
 	unifi.Verbose = *verbose
-	cfg.Start(*listenAddress)
+	cfg.Start(*listenAddress, version)
 }
 
 func printVersion() {
