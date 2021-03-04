@@ -23,12 +23,13 @@ var (
 	siteWifiClientsScore = siteDesc("wifi_client_score", "average client score") // 0-100?
 	siteWifiClientsCount = siteDesc("wifi_clients_count", "number of clients by rating", "rating")
 
-	devLabel   = []string{"mac"}
-	devStatus  = deviceDesc("status", "current device status", "desc", "model_id", "model", "firmware")
-	devUptime  = deviceDesc("uptime", "uptime of device in seconds")
-	devLoad    = deviceDesc("load", "current system load of endpoint")
-	devClients = deviceDesc("clients", "number of connected WLAN clients", "band")
-	devUplink  = deviceDesc("uplink", "uplink type and speed", "type")
+	devLabel        = []string{"mac"}
+	devStatus       = deviceDesc("status", "current device status", "desc", "model_id", "model", "firmware")
+	devUptime       = deviceDesc("uptime", "uptime of device in seconds")
+	devLoad         = deviceDesc("load", "current system load of endpoint")
+	devClients      = deviceDesc("clients", "number of connected WLAN clients", "band")
+	devUplink       = deviceDesc("uplink", "uplink type and speed", "type")
+	devOfflineSince = deviceDesc("offline_since", "Unix timestamp when the device was last seen")
 )
 
 func (uc *unifiCollector) Describe(ch chan<- *prometheus.Desc) {
@@ -43,6 +44,7 @@ func (uc *unifiCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- devLoad
 	ch <- devClients
 	ch <- devUplink
+	ch <- devOfflineSince
 }
 
 func (uc *unifiCollector) Collect(ch chan<- prometheus.Metric) {
@@ -70,13 +72,13 @@ func (uc *unifiCollector) Collect(ch chan<- prometheus.Metric) {
 	for _, d := range m.Devices {
 		metric(devStatus, G, float64(d.Status), d.MAC, d.StatusHuman, d.Model, d.ModelHuman, d.Firmware)
 
-		if d.Uptime == 0 {
-			metric(devUptime, G, 0, d.MAC)
-			continue
+		if d.LastSeen.IsZero() {
+			metric(devUptime, G, d.Uptime.Seconds(), d.MAC)
+			metric(devLoad, G, d.Load, d.MAC)
+			metric(devUplink, G, float64(d.UplinkSpeed), d.MAC, d.Uplink)
+		} else {
+			metric(devOfflineSince, G, float64(d.LastSeen.Unix()), d.MAC)
 		}
-		metric(devUptime, G, d.Uptime.Seconds(), d.MAC)
-		metric(devLoad, G, d.Load, d.MAC)
-		metric(devUplink, G, float64(d.UplinkSpeed), d.MAC, d.Uplink)
 
 		for band, clients := range d.Radios {
 			metric(devClients, G, float64(clients), d.MAC, band)
