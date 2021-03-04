@@ -27,11 +27,11 @@ type DeviceMetrics struct {
 	Status      int
 	StatusHuman string
 
-	Uptime      time.Duration
-	LastSeen    *time.Time
-	Uplink      string
-	UplinkSpeed int
-	Load        float64
+	LastSeen    time.Time
+	Uptime      *time.Duration
+	Uplink      *string
+	UplinkSpeed *int
+	Load        *float64
 
 	Radios map[string]int
 }

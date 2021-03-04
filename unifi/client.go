@@ -327,20 +327,6 @@ func (c *Controller) Metrics(ctx context.Context, siteDesc string) (*Metrics, er
 			continue // unadopted devices show up in *every* site
 		}
 
-		lastSeen := time.Unix(int64(d.LastSeenUnix), 0)
-		var load float64
-		if l := d.Sys.Load1; l != "" {
-			if l[0] == '"' && l[len(l)-1] == '"' {
-				l = l[1 : len(l)-1]
-			}
-			load64, err := strconv.ParseFloat(l, 64)
-			if err != nil {
-				load = -1
-			} else {
-				load = load64
-			}
-		}
-
 		dm := DeviceMetrics{
 			MAC:         d.MAC,
 			Firmware:    d.Version,
@@ -350,12 +336,29 @@ func (c *Controller) Metrics(ctx context.Context, siteDesc string) (*Metrics, er
 			EOL:         d.EOL,
 			Status:      int(d.State),
 			StatusHuman: d.State.String(),
-			Uptime:      time.Duration(d.Uptime) * time.Second, //nolint:durationcheck
-			LastSeen:    &lastSeen,
+			Radios:      make(map[string]int),
 			Uplink:      d.UplinkDescription(),
 			UplinkSpeed: d.UplinkSpeed(),
-			Load:        load,
-			Radios:      make(map[string]int),
+		}
+
+		if d.LastSeenUnix > 0 {
+			dm.LastSeen = time.Unix(int64(d.LastSeenUnix), 0)
+		}
+		if d.Uptime != nil {
+			uptime := time.Duration(*d.Uptime) * time.Second //nolint:durationcheck
+			dm.Uptime = &uptime
+		}
+
+		if d.Sys != nil {
+			if l := d.Sys.Load1; l != "" {
+				if l[0] == '"' && l[len(l)-1] == '"' {
+					l = l[1 : len(l)-1]
+				}
+				load64, err := strconv.ParseFloat(l, 64)
+				if err == nil {
+					dm.Load = &load64
+				}
+			}
 		}
 
 		for _, vap := range d.VAP {

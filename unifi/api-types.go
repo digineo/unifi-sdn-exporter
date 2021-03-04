@@ -91,19 +91,19 @@ type siteDeviceResponse struct {
 	EOL          bool         `json:"model_in_eol"`
 	State        DeviceStatus `json:"state"`
 	LastSeenUnix int          `json:"last_seen"`
-	Uptime       int          `json:"uptime"`
+	Uptime       *int         `json:"uptime"`
 
-	Sys struct {
+	Sys *struct {
 		Load1  string `json:"loadavg_1"`  // encoded as quoted float
 		Load5  string `json:"loadavg_5"`  // dito
 		Load15 string `json:"loadavg_15"` // dito
-	} `json:"sys_stats"`
+	} `json:"sys_stats,omitempty"`
 
-	Uplink struct {
+	Uplink *struct {
 		Type       string `json:"type"` // "wire", "wireless"
 		FullDuplex bool   `json:"full_duplex"`
 		Speed      int    `json:"speed"` // in MBit/s
-	}
+	} `json:"uplink,omitempty"`
 
 	// Virtual APs
 	VAP []struct {
@@ -134,26 +134,37 @@ func (dev *siteDeviceResponse) ModelHuman() string {
 	return name
 }
 
-func (dev *siteDeviceResponse) UplinkDescription() string {
+func (dev *siteDeviceResponse) UplinkDescription() *string {
+	if dev.Uplink == nil {
+		return nil
+	}
+
+	var desc string
 	switch u := dev.Uplink; u.Type {
 	case "wire":
 		dplx := "HD"
 		if u.FullDuplex {
 			dplx = "FD"
 		}
-		return fmt.Sprintf("%d%s", u.Speed, dplx)
+		desc = fmt.Sprintf("%d%s", u.Speed, dplx)
 	case "wireless":
-		return "Mesh"
+		desc = "Mesh"
 	default:
-		return fmt.Sprintf("unknown (%s)", u.Type)
+		desc = fmt.Sprintf("unknown (%s)", u.Type)
 	}
+	return &desc
 }
 
-func (dev *siteDeviceResponse) UplinkSpeed() int {
-	if dev.Uplink.Type == "wire" {
-		return dev.Uplink.Speed
+func (dev *siteDeviceResponse) UplinkSpeed() *int {
+	if dev.Uplink == nil {
+		return nil
 	}
-	return -1 // special case for wireless
+
+	speed := -1 // special case for wireless
+	if dev.Uplink.Type == "wire" {
+		speed = dev.Uplink.Speed
+	}
+	return &speed
 }
 
 var modelLookup = map[string]string{
