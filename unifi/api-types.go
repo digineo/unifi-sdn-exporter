@@ -59,35 +59,27 @@ const siteDevicesPath = "/api/s/{siteName}/stat/device"
 
 type DeviceStatus int
 
+var deviceStatus = []string{
+	"disconnected",
+	"connected",
+	"pending",
+	"firmware mismatch",
+	"upgrading",
+	"provisioning",
+	"heartbeat missed",
+	"adopting",
+	"deleting",
+	"inform error",
+	"adoption failed",
+	"isolated",
+}
+
 func (ds DeviceStatus) String() string {
-	switch ds {
-	case 0:
-		return "disconnected"
-	case 1:
-		return "connected"
-	case 2:
-		return "pending"
-	case 3:
-		return "firmware mismatch"
-	case 4:
-		return "upgrading"
-	case 5:
-		return "provisioning"
-	case 6:
-		return "heartbeat missed"
-	case 7:
-		return "adopting"
-	case 8:
-		return "deleting"
-	case 9:
-		return "inform error"
-	case 10:
-		return "adoption failed"
-	case 11:
-		return "isolated"
-	default:
-		return fmt.Sprintf("unknown (%d)", int(ds))
+	if int(ds) < len(deviceStatus) {
+		return deviceStatus[ds]
 	}
+
+	return fmt.Sprintf("unknown (%d)", int(ds))
 }
 
 type siteDeviceResponse struct {
