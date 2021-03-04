@@ -53,12 +53,13 @@ func (uc *unifiCollector) Collect(ch chan<- prometheus.Metric) {
 	}
 
 	m, err := uc.client.Metrics(uc.ctx, uc.site)
-	metric(ctrlUp, G, boolToFloat(err == nil), m.ControllerVersion)
 	if err != nil {
+		metric(ctrlUp, G, 0, "")
 		log.Println("fetching failed:", err)
 		return
 	}
 
+	metric(ctrlUp, G, 1, m.ControllerVersion)
 	metric(siteWifiUtil, G, m.AvgWifiUtilization24, "2.4")
 	metric(siteWifiUtil, G, m.AvgWifiUtilization50, "5")
 	metric(siteWifiClientsScore, G, m.AvgWifiScore)
@@ -81,14 +82,6 @@ func (uc *unifiCollector) Collect(ch chan<- prometheus.Metric) {
 			metric(devClients, G, float64(clients), d.MAC, band)
 		}
 	}
-}
-
-func boolToFloat(val bool) float64 {
-	if val {
-		return 1
-	}
-
-	return 0
 }
 
 func ctrlDesc(name, help string, extraLabel ...string) *prometheus.Desc {
