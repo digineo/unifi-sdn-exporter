@@ -262,7 +262,7 @@ func (c *Controller) fetchSite(ctx context.Context, ident string) (*sitesRespons
 		}
 	}
 
-	return nil, nil
+	return nil, &ErrSiteNotFound{ident}
 }
 
 func (c *Controller) updateSiteCache(ctx context.Context) error {

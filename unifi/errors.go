@@ -41,3 +41,11 @@ type ErrUnexpectedStatus struct {
 func (err *ErrUnexpectedStatus) Error() string {
 	return fmt.Sprintf("unexpected status %d for %v %v: %v", err.Status, err.Method, err.URL, err.Body)
 }
+
+type ErrSiteNotFound struct {
+	site string
+}
+
+func (err *ErrSiteNotFound) Error() string {
+	return fmt.Sprintf("site '%s' not found", err.site)
+}
