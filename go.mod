@@ -1,4 +1,4 @@
-module git.digineo.de/digineo/unifi-sdn-exporter
+module github.com/digineo/unifi-sdn-exporter
 
 go 1.16
 

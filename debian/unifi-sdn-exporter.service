@@ -1,6 +1,6 @@
 [Unit]
 Description=Unifi SDN Exporter
-Documentation=https://git.digineo.de/digineo/unifi-sdn-exporter
+Documentation=https://github.com/digineo/unifi-sdn-exporter
 
 [Service]
 EnvironmentFile=/etc/default/unifi-sdn-exporter

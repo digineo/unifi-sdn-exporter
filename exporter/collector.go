@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"git.digineo.de/digineo/unifi-sdn-exporter/unifi"
+	"github.com/digineo/unifi-sdn-exporter/unifi"
 	"github.com/prometheus/client_golang/prometheus"
 )
 

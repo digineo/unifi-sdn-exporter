@@ -9,7 +9,7 @@ import (
 	"strings"
 	"text/template"
 
-	"git.digineo.de/digineo/unifi-sdn-exporter/unifi"
+	"github.com/digineo/unifi-sdn-exporter/unifi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
