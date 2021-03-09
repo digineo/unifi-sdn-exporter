@@ -1,6 +1,7 @@
 package unifi
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -91,7 +92,7 @@ type siteDeviceResponse struct {
 	EOL          bool         `json:"model_in_eol"`
 	State        DeviceStatus `json:"state"`
 	LastSeenUnix int          `json:"last_seen"`
-	Uptime       *int         `json:"uptime"`
+	Uptime       *quotedInt   `json:"uptime"`
 
 	Sys *struct {
 		Load1  string `json:"loadavg_1"`  // encoded as quoted float
@@ -277,4 +278,27 @@ var modelLookup = map[string]string{
 	"US624P":   "UniFi6 Switch 24",
 	"UBB":      "UniFi Building Bridge",
 	"UXGPRO":   "UniFi NeXt-Gen Gateway PRO",
+}
+
+// quotedInt is an integer wrapped in quotes. For whatever reason,
+// the Unifi SDN controller sometimes wraps integer values in quotes.
+type quotedInt int
+
+// UnmarshalJSON implements encoding/json.Unmarshaler.
+func (i *quotedInt) UnmarshalJSON(b []byte) error {
+	if bytes.Equal(b, []byte("null")) {
+		return nil
+	}
+
+	if l := len(b); l > 2 && b[0] == '"' && b[l-1] == '"' {
+		b = b[1 : l-1]
+	}
+
+	var val int
+	if err := json.Unmarshal(b, &val); err != nil {
+		return err //nolint:wrapcheck
+	}
+
+	*i = quotedInt(val)
+	return nil
 }
