@@ -9,7 +9,7 @@ import (
 	"github.com/digineo/unifi-sdn-exporter/exporter"
 	"github.com/digineo/unifi-sdn-exporter/unifi"
 
-	kingpin "gopkg.in/alecthomas/kingpin.v2"
+	kingpin "github.com/alecthomas/kingpin/v2"
 )
 
 // DefaultConfigPath points to the default config file location.
