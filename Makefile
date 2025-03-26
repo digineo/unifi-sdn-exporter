@@ -8,4 +8,4 @@ dev: unifi-sdn-exporter config.toml
 
 .PHONY: release
 release:
-	goreleaser release --clean --skip-sign --skip-publish
+	goreleaser release --clean --skip sign,publish
