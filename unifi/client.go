@@ -339,6 +339,9 @@ func (c *Controller) Metrics(ctx context.Context, siteDesc string) (*Metrics, er
 			Radios:      make(map[string]int),
 			Uplink:      d.UplinkDescription(),
 			UplinkSpeed: d.UplinkSpeed(),
+			PowerMax:    d.PowerMax,
+			PowerUsed:   d.PowerUsed,
+			Temperature: d.Temperature,
 		}
 
 		if d.LastSeenUnix > 0 {

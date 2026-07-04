@@ -32,6 +32,9 @@ type DeviceMetrics struct {
 	Uplink      *string
 	UplinkSpeed *int
 	Load        *float64
+	PowerMax    *int
+	PowerUsed   *float32
+	Temperature *int
 
 	Radios map[string]int
 }

@@ -93,6 +93,9 @@ type siteDeviceResponse struct {
 	State        DeviceStatus `json:"state"`
 	LastSeenUnix int          `json:"last_seen"`
 	Uptime       *quotedInt   `json:"uptime"`
+	Temperature  *int         `json:"general_temperature"`
+	PowerMax     *int         `json:"total_max_power"`
+	PowerUsed    *float32     `json:"total_used_power"`
 
 	Sys *struct {
 		Load1  string `json:"loadavg_1"`  // encoded as quoted float

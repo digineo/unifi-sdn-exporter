@@ -23,13 +23,16 @@ var (
 	siteWifiClientsScore = siteDesc("wifi_client_score", "average client score") // 0-100?
 	siteWifiClientsCount = siteDesc("wifi_clients_count", "number of clients by rating", "rating")
 
-	devLabel    = []string{"mac"}
-	devStatus   = deviceDesc("status", "current device status", "desc", "model_id", "model", "firmware")
-	devUptime   = deviceDesc("uptime", "uptime of device in seconds")
-	devLoad     = deviceDesc("load", "current system load of endpoint")
-	devClients  = deviceDesc("clients", "number of connected WLAN clients", "band")
-	devUplink   = deviceDesc("uplink", "uplink type and speed", "type")
-	devLastSeen = deviceDesc("last_seen", "Unix timestamp when the device was last seen")
+	devLabel       = []string{"mac"}
+	devStatus      = deviceDesc("status", "current device status", "desc", "model_id", "model", "firmware")
+	devUptime      = deviceDesc("uptime", "uptime of device in seconds")
+	devLoad        = deviceDesc("load", "current system load of endpoint")
+	devClients     = deviceDesc("clients", "number of connected WLAN clients", "band")
+	devUplink      = deviceDesc("uplink", "uplink type and speed", "type")
+	devLastSeen    = deviceDesc("last_seen", "Unix timestamp when the device was last seen")
+	devPowerMax    = deviceDesc("power_max", "maximum power usage of the device in watts")
+	devPowerUsed   = deviceDesc("power_used", "current power usage of the device in watts")
+	devTemperature = deviceDesc("temperature", "current temperature of the device in Celsius")
 )
 
 func (uc *unifiCollector) Describe(ch chan<- *prometheus.Desc) {
@@ -45,6 +48,9 @@ func (uc *unifiCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- devClients
 	ch <- devUplink
 	ch <- devLastSeen
+	ch <- devPowerMax
+	ch <- devPowerUsed
+	ch <- devTemperature
 }
 
 func (uc *unifiCollector) Collect(ch chan<- prometheus.Metric) {
@@ -87,6 +93,15 @@ func (uc *unifiCollector) Collect(ch chan<- prometheus.Metric) {
 
 		for band, clients := range d.Radios {
 			metric(devClients, G, float64(clients), d.MAC, band)
+		}
+		if d.PowerMax != nil {
+			metric(devPowerMax, G, float64(*d.PowerMax), d.MAC)
+		}
+		if d.PowerUsed != nil {
+			metric(devPowerUsed, G, float64(*d.PowerUsed), d.MAC)
+		}
+		if d.Temperature != nil {
+			metric(devTemperature, G, float64(*d.Temperature), d.MAC)
 		}
 	}
 }
